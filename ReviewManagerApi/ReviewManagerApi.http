@@ -1,0 +1,6 @@
+@ReviewManagerApi_HostAddress = http://localhost:5165
+
+GET {{ReviewManagerApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
