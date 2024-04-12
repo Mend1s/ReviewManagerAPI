@@ -10,8 +10,8 @@ namespace ReviewManager.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly ReviewManagerDbContext _dbContext;
-    public UsersController(ReviewManagerDbContext dbContext)
+    private readonly ReviewDbContext _dbContext;
+    public UsersController(ReviewDbContext dbContext)
     {
         _dbContext = dbContext;
     }
