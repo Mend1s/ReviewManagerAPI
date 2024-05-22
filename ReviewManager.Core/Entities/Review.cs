@@ -2,6 +2,19 @@
 
 public class Review : BaseEntity
 {
+    public Review
+        (int note,
+        string description,
+        int idUser,
+        int idBook)
+    {
+        Note = note;
+        Description = description;
+        IdUser = idUser;
+        IdBook = idBook;
+        CreateDate = DateTime.Now;
+    }
+
     public int Note { get; set; }
     public string Description { get; set; }
     public int IdUser { get; set; }
