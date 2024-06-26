@@ -78,8 +78,7 @@ public class BooksController : ControllerBase
             createBookInputModel.Publisher,
             //createBookInputModel.Genre,
             createBookInputModel.YearOfPublication,
-            createBookInputModel.NumberOfPages,
-            createBookInputModel.CreateDate);
+            createBookInputModel.NumberOfPages);
 
         await _dbContext.Books.AddAsync(book);
 
@@ -104,7 +103,6 @@ public class BooksController : ControllerBase
             updateBookModel.Genre,
             updateBookModel.YearOfPublication,
             updateBookModel.NumberOfPages,
-            updateBookModel.CreateDate,
             updateBookModel.AverageGrade);
 
         _dbContext.Update(book);

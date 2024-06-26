@@ -4,6 +4,7 @@ namespace ReviewManager.Core.Entities;
 
 public class Book : BaseEntity
 {
+    // TODO: Add validation in ISBN property (repository?)
     public Book(
         string title,
         string description,
@@ -12,8 +13,7 @@ public class Book : BaseEntity
         string publisher,
         //BookGenre genre,
         int yearOfPublication,
-        int numberOfPages,
-        DateTime createDate)
+        int numberOfPages)
     {
         Title = title;
         Description = description;
@@ -23,7 +23,7 @@ public class Book : BaseEntity
         //Genre = genre;
         YearOfPublication = yearOfPublication;
         NumberOfPages = numberOfPages;
-        CreateDate = createDate;
+        CreateDate = DateTime.Now;
     }
 
     public string Title { get; set; }
@@ -49,7 +49,6 @@ public class Book : BaseEntity
         BookGenre genre,
         int yearOfPublication,
         int numberOfPages,
-        DateTime createDate,
         string averageGrade)
     {
         Title = title;
@@ -60,7 +59,6 @@ public class Book : BaseEntity
         Genre = genre;
         YearOfPublication = yearOfPublication;
         NumberOfPages = numberOfPages;
-        CreateDate = createDate;
         AverageGrade = averageGrade;
     }
 }
