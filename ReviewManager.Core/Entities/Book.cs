@@ -11,7 +11,7 @@ public class Book : BaseEntity
         string iSBN,
         string author,
         string publisher,
-        //BookGenre genre,
+        BookGenre genre,
         int yearOfPublication,
         int numberOfPages)
     {
@@ -20,7 +20,7 @@ public class Book : BaseEntity
         ISBN = iSBN;
         Author = author;
         Publisher = publisher;
-        //Genre = genre;
+        Genre = genre;
         YearOfPublication = yearOfPublication;
         NumberOfPages = numberOfPages;
         CreateDate = DateTime.Now;

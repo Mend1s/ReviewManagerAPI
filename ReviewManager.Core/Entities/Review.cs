@@ -2,7 +2,11 @@
 
 public class Review : BaseEntity
 {
-    public Review(int note, string description, int idUser, int idBook)
+    public Review
+        (int note,
+        string description,
+        int idUser,
+        int idBook)
     {
         Note = note;
         Description = description;

@@ -22,7 +22,7 @@ public class ReviewsController : ControllerBase
         var reviews = await _dbContext.Reviews.ToListAsync();
 
         if (reviews is null) return BadRequest();
-
+        
         var reviewViewModel = reviews.Select(review => new ReviewViewModel
         {
             Id = review.Id,

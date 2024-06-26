@@ -76,7 +76,7 @@ public class BooksController : ControllerBase
             createBookInputModel.ISBN,
             createBookInputModel.Author,
             createBookInputModel.Publisher,
-            //createBookInputModel.Genre,
+            createBookInputModel.Genre,
             createBookInputModel.YearOfPublication,
             createBookInputModel.NumberOfPages);
 
