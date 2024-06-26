@@ -61,7 +61,9 @@ public class BooksConfigurations : IEntityTypeConfiguration<Book>
 
         builder
             .Property(e => e.ImageUrl)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(4000)
+            .HasColumnType("nvarchar(max)");
 
         builder
             .HasMany(b => b.Reviews)

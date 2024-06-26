@@ -13,7 +13,8 @@ public class Book : BaseEntity
         string publisher,
         BookGenre genre,
         int yearOfPublication,
-        int numberOfPages)
+        int numberOfPages,
+        string imageUrl)
     {
         Title = title;
         Description = description;
@@ -24,6 +25,7 @@ public class Book : BaseEntity
         YearOfPublication = yearOfPublication;
         NumberOfPages = numberOfPages;
         CreateDate = DateTime.Now;
+        ImageUrl = imageUrl;
     }
 
     public string Title { get; set; }
@@ -35,8 +37,7 @@ public class Book : BaseEntity
     public int YearOfPublication { get; set; }
     public int NumberOfPages { get; set; }
     public DateTime CreateDate { get; set; }
-    //public string Format { get; set; }
-    public byte[]? ImageUrl { get; set; }
+    public string ImageUrl { get; set; }
     public string? AverageGrade { get; set; }
     public List<Review> Reviews { get; set; }
 

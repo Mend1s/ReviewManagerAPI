@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReviewManager.Application.InputModels;
+using ReviewManager.Application.Services.Implementations;
+using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.ViewModels;
 using ReviewManager.Core.Entities;
 using ReviewManager.Infrastructure.Persistence;
@@ -10,66 +12,72 @@ namespace ReviewManager.API.Controllers;
 [Route("api/[controller]")]
 public class ReviewsController : ControllerBase
 {
-    private readonly ReviewDbContext _dbContext;
-    public ReviewsController(ReviewDbContext dbContext)
+    private readonly IReviewService _reviewService;
+    public ReviewsController(IReviewService reviewService)
     {
-        _dbContext = dbContext;
+        _reviewService = reviewService;
     }
 
+    /// <summary>
+    /// Obtém todos as avaliações.
+    /// </summary>
+    /// <returns>Uma lista de avaliações.</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ReviewViewModel>>> GetAll()
     {
-        var reviews = await _dbContext.Reviews.ToListAsync();
-
-        if (reviews is null) return BadRequest();
-        
-        var reviewViewModel = reviews.Select(review => new ReviewViewModel
+        try
         {
-            Id = review.Id,
-            Note = review.Note,
-            Description = review.Description,
-            IdUser = review.IdUser,
-            IdBook = review.IdBook,
-            CreateDate = review.CreateDate
-        }).ToList();
-
-        return reviewViewModel;
+            return Ok(await _reviewService.GetAllReviews());
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[GetAllReviews] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Obtém um avaliação pela ID.
+    /// </summary>
+    /// <param name="id">O ID da avaliação a ser obtido.</param>
+    /// <returns>A avaliação solicitada.</returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReviewViewModel>> GetById(int id)
     {
-        var review = await _dbContext.Reviews.SingleOrDefaultAsync(r => r.Id == id);
-
-        if (review is null) return NotFound();
-
-        var reviewViewModel = new ReviewViewModel
+        try
         {
-            Id = review.Id,
-            Note = review.Note,
-            Description = review.Description,
-            IdUser = review.IdUser,
-            IdBook = review.IdBook,
-            CreateDate = review.CreateDate
-        };
-
-        return reviewViewModel;
+            return Ok(await _reviewService.GetReviewById(id));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[GetReviewById] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Cria uma nova avaliação.
+    /// </summary>
+    /// <param name="reviewViewModel">Os detalhes da avaliação a ser criada.</param>
+    /// <returns>A avaliação criada.</returns>
     [HttpPost]
-    public async Task<ActionResult<ReviewViewModel>> Create([FromBody] CreateReviewInputModel reviewViewModel)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ReviewViewModel>> CreateReview([FromBody] CreateReviewInputModel reviewViewModel)
     {
-        var review = new Review(reviewViewModel.Note, reviewViewModel.Description, reviewViewModel.IdUser, idBook: reviewViewModel.IdBook);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == reviewViewModel.IdUser);
-        if (user is null) return NotFound("Usuário não encontrado, por favor tente novamente com os dados corretos.");
+            var user = await _reviewService.CreateReview(reviewViewModel);
 
-        var book = await _dbContext.Books.SingleOrDefaultAsync(b => b.Id == reviewViewModel.IdBook);
-        if (book is null) return NotFound("Livro não encontrado, por favor tente novamente com os dados corretos.");
-
-        _dbContext.Reviews.Add(review);
-        await _dbContext.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = review.Id }, review);
+            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[CreateReview] : {ex.Message}");
+        }
     }
 }

@@ -1,128 +1,149 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ReviewManager.Application.InputModels;
+using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.ViewModels;
-using ReviewManager.Core.Entities;
-using ReviewManager.Infrastructure.Persistence;
 
 namespace ReviewManager.API.Controllers;
 
 [Route("api/[controller]")]
 public class BooksController : ControllerBase
 {
-    private readonly ReviewDbContext _dbContext;
-    public BooksController(ReviewDbContext dbContext)
+    private readonly IBookService _bookService;
+    public BooksController(IBookService bookService)
     {
-        _dbContext = dbContext;
+        _bookService = bookService;
     }
 
+    /// <summary>
+    /// Obtém todos os livros.
+    /// </summary>
+    /// <returns>Uma lista de livros.</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<BookViewModel>>> GetAll()
     {
-        var books = await _dbContext.Books.ToListAsync();
-
-        if (books is null) return BadRequest();
-
-        var bookViewModel = books.Select(book => new BookViewModel
+        try
         {
-            Id = book.Id,
-            Title = book.Title,
-            Description = book.Description,
-            ISBN = book.ISBN,
-            Author = book.Author,
-            Publisher = book.Publisher,
-            Genre = book.Genre,
-            YearOfPublication = book.YearOfPublication,
-            NumberOfPages = book.NumberOfPages,
-            CreateDate = book.CreateDate,
-            AverageGrade = book.AverageGrade
-        }).ToList();
-
-        return bookViewModel;
+            return Ok(await _bookService.GetAllBooks());
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[GetAllBooks] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Obtém um livro pelo ID.
+    /// </summary>
+    /// <param name="id">O ID do livro a ser obtido.</param>
+    /// <returns>O livro solicitado.</returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BookViewModel>> GetById(int id)
     {
-        var book = await _dbContext.Books.SingleOrDefaultAsync(b => b.Id == id);
-
-        if (book is null) return NotFound();
-
-        var bookViewModel = new BookViewModel
+        try
         {
-            Id = book.Id,
-            Title = book.Title,
-            Description = book.Description,
-            ISBN = book.ISBN,
-            Author = book.Author,
-            Publisher = book.Publisher,
-            Genre = book.Genre,
-            YearOfPublication = book.YearOfPublication,
-            NumberOfPages = book.NumberOfPages,
-            CreateDate = book.CreateDate,
-            //ImageUrl = book.ImageUrl,
-            AverageGrade = book.AverageGrade
-        };
-
-        return bookViewModel;
+            return Ok(await _bookService.GetBookById(id));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[GetBookById] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Cria um novo livro.
+    /// </summary>
+    /// <param name="createBookInputModel">Os detalhes do livro a ser criado.</param>
+    /// <returns>O doador criado.</returns>
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] CreateBookInputModel createBookInputModel)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Post([FromForm] CreateBookInputModel createBookInputModel)
     {
-        var book = new Book(
-            createBookInputModel.Title,
-            createBookInputModel.Description,
-            createBookInputModel.ISBN,
-            createBookInputModel.Author,
-            createBookInputModel.Publisher,
-            createBookInputModel.Genre,
-            createBookInputModel.YearOfPublication,
-            createBookInputModel.NumberOfPages);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        await _dbContext.Books.AddAsync(book);
+            var book = await _bookService.CreateBook(createBookInputModel);
 
-        await _dbContext.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
 
-        return CreatedAtAction(nameof(GetById), new { id = book.Id }, createBookInputModel);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[CreateBook] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Atualiza um livro existente.
+    /// </summary>
+    /// <param name="id">O ID do livro a ser atualizado.</param>
+    /// <param name="updateBookModel">Os novos detalhes do livro.</param>
+    /// <returns>O livro atualizado.</returns>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateBookInputModel updateBookModel)
     {
-        var book = _dbContext.Books.SingleOrDefault(b => b.Id == id);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        if (book is null) return BadRequest();
+            return Ok(await _bookService.UpdateBook(id, updateBookModel));
 
-        book.UpdateBook(
-            updateBookModel.Title,
-            updateBookModel.Description,
-            updateBookModel.ISBN,
-            updateBookModel.Author,
-            updateBookModel.Publisher,
-            updateBookModel.Genre,
-            updateBookModel.YearOfPublication,
-            updateBookModel.NumberOfPages,
-            updateBookModel.AverageGrade);
-
-        _dbContext.Update(book);
-
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(book);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[UpdateBook] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Deleta um livro pelo ID.
+    /// </summary>
+    /// <param name="id">ID do livro a ser deletado.</param>
+    /// <returns>O livro deletado.</returns>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        var book = _dbContext.Books.SingleOrDefault(b => b.Id == id);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        if (book is null) return NotFound();
+            return Ok(await _bookService.DeleteBook(id));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[DeleteBook] : {ex.Message}");
+        }
+    }
 
-        _dbContext.Books.Remove(book);
-
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(book);
+    /// <summary>
+    /// Baixa a imagem de capa de um livro pelo ID.
+    /// </summary>
+    /// <remarks>
+    /// Retorna a imagem de capa do livro como um arquivo de imagem (png/jpeg).
+    /// </remarks>
+    /// <param name="id">ID do livro.</param>
+    /// <returns>O arquivo de imagem do livro.</returns>
+    [HttpGet("download/{id:int}")]
+    public async Task<IActionResult> DownloadPhotoBookAsync(int id)
+    {
+        try
+        {
+            var fileResult = await _bookService.DownloadPhotoBookAsync(id);
+            return fileResult;
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[DownloadPhotoBookAsync] : {ex.Message}");
+        }
     }
 }

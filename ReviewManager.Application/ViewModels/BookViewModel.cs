@@ -15,8 +15,7 @@ public class BookViewModel
     public int YearOfPublication { get; set; }
     public int NumberOfPages { get; set; }
     public DateTime CreateDate { get; set; }
-    public string Format { get; set; }
-    //public byte[] ImageUrl { get; set; }
+    public string ImageUrl { get; set; }
     public string AverageGrade { get; set; }
     //public List<Review> Reviews { get; set; }
 }

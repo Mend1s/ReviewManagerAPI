@@ -1,94 +1,128 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ReviewManager.Application.InputModels;
+using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.ViewModels;
-using ReviewManager.Core.Entities;
-using ReviewManager.Infrastructure.Persistence;
 
 namespace ReviewManager.API.Controllers;
 
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly ReviewDbContext _dbContext;
-    public UsersController(ReviewDbContext dbContext)
+    private readonly IUserService _userService;
+    public UsersController(IUserService userService)
     {
-        _dbContext = dbContext;
+        _userService = userService;
     }
 
+
+    /// <summary>
+    /// Obtém todos os usuários.
+    /// </summary>
+    /// <returns>Uma lista de usuários.</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<UserViewModel>>> GetAll()
     {
-        var users = await _dbContext.Users.ToListAsync();
-
-        if (users is null) return BadRequest();
-
-        var userViewModel = users.Select(user => new UserViewModel
+        try
         {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-        }).ToList();
-
-        return userViewModel;
+            return Ok(await _userService.GetAllUsers());
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[GetAllUsers] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Obtém um usuário pelo ID.
+    /// </summary>
+    /// <param name="id">O ID do usuário a ser obtido.</param>
+    /// <returns>O usuário solicitado.</returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserViewModel>> GetById(int id)
     {
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == id);
-
-        if (user is null) return NotFound();
-
-        var userViewModel = new UserViewModel
+        try
         {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-        };
-
-        return userViewModel;
+            return Ok(await _userService.GetUserById(id));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[GetUserById] : {ex.Message}");
+        }
     }
 
+
+    /// <summary>
+    /// Cria um novo usuário.
+    /// </summary>
+    /// <param name="createUserInputModel">Os detalhes do usuário a ser criado.</param>
+    /// <returns>O doador criado.</returns>
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] CreateUserInputModel createUserInputModel)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserInputModel createUserInputModel)
     {
-        var user = new User(createUserInputModel.Name, createUserInputModel.Email);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        await _dbContext.Users.AddAsync(user);
+            var user = await _userService.CreateUser(createUserInputModel);
 
-        await _dbContext.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = user.Id }, createUserInputModel);
+            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[CreateUser] : {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Atualiza um usuário existente.
+    /// </summary>
+    /// <param name="id">O ID do usuário a ser atualizado.</param>
+    /// <param name="updateUserInputModel">Os novos detalhes do usuário.</param>
+    /// <returns>O usuário atualizado.</returns>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, [FromBody] UpdateUserInputModel updateUserInputModel)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserInputModel updateUserInputModel)
     {
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == id);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        if (user is null) return NotFound();
-
-        user.UpdateUser(updateUserInputModel.Name, updateUserInputModel.Email);
-
-        _dbContext.Users.Update(user);
-
-        await _dbContext.SaveChangesAsync();
-
-        return NoContent();
+            return Ok(await _userService.UpdateUser(id, updateUserInputModel));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[UpdateUser] : {ex.Message}");
+        }
     }
 
+
+    /// <summary>
+    /// Deleta um usuário pelo ID.
+    /// </summary>
+    /// <param name="id">ID do usuário a ser deletado.</param>
+    /// <returns>O usuário deletado.</returns>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUser(int id)
     {
-        var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == id);
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        if (user is null) return NotFound();
-
-        _dbContext.Users.Remove(user);
-
-        await _dbContext.SaveChangesAsync();
-
-        return NoContent();
+            return Ok(await _userService.DeleteUser(id));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(error: $"[DeleteUser] : {ex.Message}");
+        }
     }
 }
