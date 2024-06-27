@@ -1,7 +1,10 @@
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using ReviewManager.API.Filters;
 using ReviewManager.Application.Services.Implementations;
 using ReviewManager.Application.Services.Interfaces;
+using ReviewManager.Application.Validators;
 using ReviewManager.Infrastructure.Persistence;
 using System.Reflection;
 
@@ -15,7 +18,10 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddDbContext<ReviewDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ReviewManager")));
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers(options => options.Filters.Add(typeof(ValidationFilter)))
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreateBookValidator>());
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

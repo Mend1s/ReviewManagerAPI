@@ -20,5 +20,10 @@ public class UsersConfigurations : IEntityTypeConfiguration<User>
             .Property(u => u.Email)
             .HasMaxLength(50)
             .IsRequired();
+        
+        builder
+            .HasMany(u => u.Reviews)
+            .WithOne(a => a.User)
+            .HasForeignKey(a => a.IdUser);
     }
 }

@@ -14,5 +14,4 @@ public class CreateBookInputModel
     public int YearOfPublication { get; set; }
     public int NumberOfPages { get; set; }
     public IFormFile ImageUrl { get; set; }
-    //public string AverageGrade { get; set; }
 }

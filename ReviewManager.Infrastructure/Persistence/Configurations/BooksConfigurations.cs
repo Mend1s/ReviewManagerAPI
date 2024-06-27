@@ -68,6 +68,6 @@ public class BooksConfigurations : IEntityTypeConfiguration<Book>
         builder
             .HasMany(b => b.Reviews)
             .WithOne(r => r.Book)
-            .HasForeignKey(a => a.IdBook);
+            .HasForeignKey(r => r.IdBook);
     }
 }
