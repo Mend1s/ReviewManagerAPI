@@ -5,7 +5,9 @@ using ReviewManager.API.Filters;
 using ReviewManager.Application.Services.Implementations;
 using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.Validators;
+using ReviewManager.Core.Repositories;
 using ReviewManager.Infrastructure.Persistence;
+using ReviewManager.Infrastructure.Persistence.Repositories;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddDbContext<ReviewDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ReviewManager")));
