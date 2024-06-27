@@ -34,8 +34,8 @@ namespace ReviewManager.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("AverageGrade")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<decimal?>("AverageGrade")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
@@ -82,9 +82,6 @@ namespace ReviewManager.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BookId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -101,14 +98,7 @@ namespace ReviewManager.Infrastructure.Migrations
                     b.Property<int>("Note")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Reviews");
                 });
@@ -138,11 +128,11 @@ namespace ReviewManager.Infrastructure.Migrations
                 {
                     b.HasOne("ReviewManager.Core.Entities.Book", "Book")
                         .WithMany("Reviews")
-                        .HasForeignKey("BookId");
+                        .HasForeignKey("IdBook");
 
                     b.HasOne("ReviewManager.Core.Entities.User", "User")
                         .WithMany("Reviews")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("IdUser");
 
                     b.Navigation("Book");
 

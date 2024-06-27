@@ -17,6 +17,11 @@ public class ReviewService : IReviewService
 
     public async Task<Review> CreateReview(CreateReviewInputModel createReviewInputModel)
     {
+        if (createReviewInputModel.Note < 1 || createReviewInputModel.Note > 5)
+        {
+            throw new ArgumentException("Nota deve ser entre 1 e 5.");
+        }
+
         var review = new Review(
             createReviewInputModel.Note,
             createReviewInputModel.Description,
@@ -29,8 +34,15 @@ public class ReviewService : IReviewService
         var book = await _dbContext.Books.SingleOrDefaultAsync(b => b.Id == createReviewInputModel.IdBook);
         if (book is null) throw new Exception("Livro não encontrado, por favor tente novamente com os dados corretos.");
 
+        //review.User = user;
+        //review.Book = book;
+
         _dbContext.Reviews.Add(review);
         await _dbContext.SaveChangesAsync();
+
+        //var totalReviews = book.Reviews.Count;
+        //var sumOfNotes = book.Reviews.Sum(a => a.Note);
+        //book.AverageGrade = (decimal)sumOfNotes / totalReviews;
 
         return review;
     }

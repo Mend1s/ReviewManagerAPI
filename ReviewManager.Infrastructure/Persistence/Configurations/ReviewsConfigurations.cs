@@ -13,6 +13,12 @@ public class ReviewsConfigurations : IEntityTypeConfiguration<Review>
         builder.Property(e => e.Note)
             .IsRequired();
 
+        builder.Property(e => e.IdUser)
+            .IsRequired();
+
+        builder.Property(e => e.IdBook)
+            .IsRequired();
+
         builder.Property(e => e.Description);
 
         builder.Property(e => e.CreateDate)

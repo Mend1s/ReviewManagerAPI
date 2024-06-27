@@ -1,4 +1,6 @@
-﻿namespace ReviewManager.Core.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace ReviewManager.Core.Entities;
 
 public class Review : BaseEntity
 {
@@ -18,9 +20,13 @@ public class Review : BaseEntity
     public int Note { get; set; }
     public string Description { get; set; }
     public int IdUser { get; set; }
-    public int IdBook { get; set; }
-    public Book? Book { get; set; }
+
+    [JsonIgnore]
     public User? User { get; set; }
+    public int IdBook { get; set; }
+
+    [JsonIgnore]
+    public Book? Book { get; set; }
     public DateTime CreateDate { get; set; }
 
     public void SetNoteForReview(int note)

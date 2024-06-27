@@ -12,5 +12,5 @@ public class UpdateBookInputModel
     public BookGenre Genre { get; set; }
     public int YearOfPublication { get; set; }
     public int NumberOfPages { get; set; }
-    public string AverageGrade { get; set; }
+    public decimal? AverageGrade { get; set; }
 }

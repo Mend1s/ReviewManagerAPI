@@ -26,6 +26,7 @@ public class Book : BaseEntity
         NumberOfPages = numberOfPages;
         CreateDate = DateTime.Now;
         ImageUrl = imageUrl;
+        AverageGrade = 0;
     }
 
     public string Title { get; set; }
@@ -38,7 +39,7 @@ public class Book : BaseEntity
     public int NumberOfPages { get; set; }
     public DateTime CreateDate { get; set; }
     public string ImageUrl { get; set; }
-    public string? AverageGrade { get; set; }
+    public decimal? AverageGrade { get; set; }
     public List<Review> Reviews { get; set; }
 
     public void UpdateBook(
@@ -50,7 +51,7 @@ public class Book : BaseEntity
         BookGenre genre,
         int yearOfPublication,
         int numberOfPages,
-        string averageGrade)
+        decimal? averageGrade)
     {
         Title = title;
         Description = description;
