@@ -9,11 +9,15 @@ namespace ReviewManager.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService)
+    private readonly ILogger<UsersController> _logger;
+
+    public UsersController(
+        IUserService userService,
+        ILogger<UsersController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
-
 
     /// <summary>
     /// Obtém todos os usuários.
@@ -24,13 +28,24 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<UserViewModel>>> GetAll()
     {
+        _logger.LogInformation("[UsersController] Iniciando a obtenção de todos os usuários.");
+
         try
         {
-            return Ok(await _userService.GetAllUsers());
+            var users = await _userService.GetAllUsers();
+            if (users == null || !users.Any())
+            {
+                _logger.LogWarning("[UsersController] Nenhum usuário encontrado.");
+                return NotFound("Nenhum usuário encontrado.");
+            }
+
+            _logger.LogInformation("[UsersController] {Count} usuários encontrados.", users.Count());
+            return Ok(users);
         }
         catch (Exception ex)
         {
-            return BadRequest(error: $"[GetAllUsers] : {ex.Message}");
+            _logger.LogError(ex, "[UsersController] Erro ao obter todos os usuários.");
+            return BadRequest($"Erro ao obter todos os usuários: {ex.Message}");
         }
     }
 
@@ -44,38 +59,56 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserViewModel>> GetById(int id)
     {
+        _logger.LogInformation("[UsersController] Iniciando a obtenção do usuário com ID: {Id}.", id);
+
         try
         {
-            return Ok(await _userService.GetUserById(id));
+            var user = await _userService.GetUserById(id);
+            if (user == null)
+            {
+                _logger.LogWarning("[UsersController] Usuário com ID: {Id} não encontrado.", id);
+                return NotFound($"Usuário com ID: {id} não encontrado.");
+            }
+
+            _logger.LogInformation("[UsersController] Usuário com ID: {Id} obtido com sucesso.", id);
+            return Ok(user);
         }
         catch (Exception ex)
         {
-            return BadRequest(error: $"[GetUserById] : {ex.Message}");
+            _logger.LogError(ex, "[UsersController] Erro ao obter o usuário com ID: {Id}.", id);
+            return BadRequest($"Erro ao obter o usuário com ID: {id}: {ex.Message}");
         }
     }
-
 
     /// <summary>
     /// Cria um novo usuário.
     /// </summary>
     /// <param name="createUserInputModel">Os detalhes do usuário a ser criado.</param>
-    /// <returns>O doador criado.</returns>
+    /// <returns>O usuário criado.</returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserInputModel createUserInputModel)
     {
+        _logger.LogInformation("[UsersController] Iniciando a criação de um novo usuário.");
+
         try
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("[UsersController] ModelState inválida ao criar um novo usuário.");
+                return BadRequest(ModelState);
+            }
 
             var user = await _userService.CreateUser(createUserInputModel);
+            _logger.LogInformation("[UsersController] Usuário criado com sucesso com ID: {Id}.", user.Id);
 
             return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
         }
         catch (Exception ex)
         {
-            return BadRequest(error: $"[CreateUser] : {ex.Message}");
+            _logger.LogError(ex, "[UsersController] Erro ao criar um novo usuário.");
+            return BadRequest($"Erro ao criar um novo usuário: {ex.Message}");
         }
     }
 
@@ -91,18 +124,32 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserInputModel updateUserInputModel)
     {
+        _logger.LogInformation("[UsersController] Iniciando a atualização do usuário com ID: {Id}.", id);
+
         try
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("[UsersController] ModelState inválida ao atualizar o usuário com ID: {Id}.", id);
+                return BadRequest(ModelState);
+            }
 
-            return Ok(await _userService.UpdateUser(id, updateUserInputModel));
+            var updatedUser = await _userService.UpdateUser(id, updateUserInputModel);
+            if (updatedUser == null)
+            {
+                _logger.LogWarning("[UsersController] Usuário com ID: {Id} não encontrado para atualização.", id);
+                return NotFound($"Usuário com ID: {id} não encontrado.");
+            }
+
+            _logger.LogInformation("[UsersController] Usuário com ID: {Id} atualizado com sucesso.", id);
+            return Ok(updatedUser);
         }
         catch (Exception ex)
         {
-            return BadRequest(error: $"[UpdateUser] : {ex.Message}");
+            _logger.LogError(ex, "[UsersController] Erro ao atualizar o usuário com ID: {Id}.", id);
+            return BadRequest($"Erro ao atualizar o usuário com ID: {id}: {ex.Message}");
         }
     }
-
 
     /// <summary>
     /// Deleta um usuário pelo ID.
@@ -114,15 +161,30 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(int id)
     {
+        _logger.LogInformation("[UsersController] Iniciando a exclusão do usuário com ID: {Id}.", id);
+
         try
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("[UsersController] ModelState inválida ao excluir o usuário com ID: {Id}.", id);
+                return BadRequest(ModelState);
+            }
 
-            return Ok(await _userService.DeleteUser(id));
+            var result = await _userService.DeleteUser(id);
+            if (result == null)
+            {
+                _logger.LogWarning("[UsersController] Usuário com ID: {Id} não encontrado para exclusão.", id);
+                return NotFound($"Usuário com ID: {id} não encontrado.");
+            }
+
+            _logger.LogInformation("[UsersController] Usuário com ID: {Id} excluído com sucesso.", id);
+            return Ok(result);
         }
         catch (Exception ex)
         {
-            return BadRequest(error: $"[DeleteUser] : {ex.Message}");
+            _logger.LogError(ex, "[UsersController] Erro ao excluir o usuário com ID: {Id}.", id);
+            return BadRequest($"Erro ao excluir o usuário com ID: {id}: {ex.Message}");
         }
     }
 }

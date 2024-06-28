@@ -8,10 +8,14 @@ namespace ReviewManager.API.Controllers;
 [Route("api/[controller]")]
 public class BooksController : ControllerBase
 {
+    private readonly ILogger<BooksController> _logger;
     private readonly IBookService _bookService;
-    public BooksController(IBookService bookService)
+    public BooksController(
+        IBookService bookService,
+        ILogger<BooksController> logger)
     {
         _bookService = bookService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -25,6 +29,7 @@ public class BooksController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Entrando no endpoint GetAll da Controller Book");
             return Ok(await _bookService.GetAllBooks());
         }
         catch (Exception ex)
@@ -45,6 +50,7 @@ public class BooksController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Entrando no endpoint GetById da Controller Book");
             return Ok(await _bookService.GetBookById(id));
         }
         catch (Exception ex)
@@ -66,6 +72,8 @@ public class BooksController : ControllerBase
         try
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            _logger.LogInformation("Entrando no endpoint Post da Controller Book");
 
             var book = await _bookService.CreateBook(createBookInputModel);
 
@@ -94,6 +102,8 @@ public class BooksController : ControllerBase
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            _logger.LogInformation("Entrando no endpoint Put da Controller Book");
+
             return Ok(await _bookService.UpdateBook(id, updateBookModel));
 
         }
@@ -117,6 +127,8 @@ public class BooksController : ControllerBase
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            _logger.LogInformation("Entrando no endpoint Delete da Controller Book");
+
             return Ok(await _bookService.DeleteBook(id));
         }
         catch (Exception ex)
@@ -138,6 +150,8 @@ public class BooksController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Entrando no endpoint DownloadPhotoBookAsync da Controller Book");
+
             var fileResult = await _bookService.DownloadPhotoBookAsync(id);
             return fileResult;
         }

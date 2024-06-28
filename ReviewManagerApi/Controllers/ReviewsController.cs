@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ReviewManager.Application.InputModels;
-using ReviewManager.Application.Services.Implementations;
 using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.ViewModels;
-using ReviewManager.Core.Entities;
-using ReviewManager.Infrastructure.Persistence;
 
 namespace ReviewManager.API.Controllers;
 
@@ -13,9 +9,14 @@ namespace ReviewManager.API.Controllers;
 public class ReviewsController : ControllerBase
 {
     private readonly IReviewService _reviewService;
-    public ReviewsController(IReviewService reviewService)
+    private readonly ILogger<ReviewsController> _logger;
+
+    public ReviewsController(
+        IReviewService reviewService,
+        ILogger<ReviewsController> logger)
     {
         _reviewService = reviewService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -27,12 +28,24 @@ public class ReviewsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ReviewViewModel>>> GetAll()
     {
+        _logger.LogInformation("[ReviewsController] Iniciando a operação de obtenção de todas as avaliações.");
+
         try
         {
-            return Ok(await _reviewService.GetAllReviews());
+            var reviews = await _reviewService.GetAllReviews();
+
+            if (reviews == null || !reviews.Any())
+            {
+                _logger.LogInformation("Nenhuma avaliação encontrada.");
+                return NotFound();
+            }
+
+            _logger.LogInformation("Avaliações obtidas com sucesso.");
+            return Ok(reviews);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Erro ao obter todas as avaliações.");
             return BadRequest(error: $"[GetAllReviews] : {ex.Message}");
         }
     }
@@ -47,12 +60,24 @@ public class ReviewsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReviewViewModel>> GetById(int id)
     {
+        _logger.LogInformation("[ReviewsController] Iniciando a operação de obtenção da avaliação com ID: {Id}", id);
+
         try
         {
-            return Ok(await _reviewService.GetReviewById(id));
+            var review = await _reviewService.GetReviewById(id);
+
+            if (review == null)
+            {
+                _logger.LogInformation("Avaliação com ID: {Id} não encontrada.", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Avaliação com ID: {Id} obtida com sucesso.", id);
+            return Ok(review);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Erro ao obter a avaliação com ID: {Id}.", id);
             return BadRequest(error: $"[GetReviewById] : {ex.Message}");
         }
     }
@@ -67,16 +92,24 @@ public class ReviewsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ReviewViewModel>> CreateReview([FromBody] CreateReviewInputModel reviewViewModel)
     {
+        _logger.LogInformation("[ReviewsController] Iniciando a operação de criação de uma nova avaliação.");
+
         try
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Modelo de entrada inválido.");
+                return BadRequest(ModelState);
+            }
 
-            var user = await _reviewService.CreateReview(reviewViewModel);
+            var review = await _reviewService.CreateReview(reviewViewModel);
 
-            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+            _logger.LogInformation("Avaliação criada com sucesso com ID: {Id}.", review.Id);
+            return CreatedAtAction(nameof(GetById), new { id = review.Id }, review);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Erro ao criar uma nova avaliação.");
             return BadRequest(error: $"[CreateReview] : {ex.Message}");
         }
     }

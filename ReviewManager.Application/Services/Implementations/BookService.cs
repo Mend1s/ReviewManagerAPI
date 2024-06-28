@@ -1,23 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ReviewManager.Application.InputModels;
 using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.ViewModels;
 using ReviewManager.Core.Entities;
-using ReviewManager.Infrastructure.Persistence;
+using ReviewManager.Core.Repositories;
 
 namespace ReviewManager.Application.Services.Implementations;
 
 public class BookService : IBookService
 {
-    private readonly ReviewDbContext _dbContext;
-    public BookService(ReviewDbContext dbContext)
+    private readonly ILogger<BookService> _logger;
+    private readonly IBookRepository _bookRepository;
+    public BookService(
+        ILogger<BookService> logger,
+        IBookRepository bookRepository)
     {
-        _dbContext = dbContext;
+        _logger = logger;
+        _bookRepository = bookRepository;
     }
 
     public async Task<Book> CreateBook(CreateBookInputModel createBookInputModel)
     {
+        _logger.LogInformation("Entrando no CreateBook do BookService para criar um novo livro.");
+
         var filePath = Path.Combine("Storage", createBookInputModel.ImageUrl.FileName);
 
         using Stream fileStream = new FileStream(filePath, FileMode.Create);
@@ -34,29 +40,29 @@ public class BookService : IBookService
             createBookInputModel.NumberOfPages,
             filePath);
 
-        await _dbContext.Books.AddAsync(book);
+        var bookCreated = await _bookRepository.CreateAsync(book);
 
-        await _dbContext.SaveChangesAsync();
-
-        return book;
+        return bookCreated;
     }
 
     public async Task<bool> DeleteBook(int id)
     {
-        var book = _dbContext.Books.SingleOrDefault(b => b.Id == id);
+        _logger.LogInformation("Entrando no DeleteBook do BookService para excluir um livro.");
+
+        var book = await _bookRepository.GetByIdAsync(id);
 
         if (book is null) throw new Exception("Livro não encontrado.");
 
-        _dbContext.Books.Remove(book);
-
-        await _dbContext.SaveChangesAsync();
+        await _bookRepository.DeleteAsync(book);
 
         return true;
     }
 
     public async Task<List<BookViewModel>> GetAllBooks()
     {
-        var books = await _dbContext.Books.ToListAsync();
+        _logger.LogInformation("Entrando no GetAllBooks do BookService para retornar uma lista de livros.");
+
+        var books = await _bookRepository.GetAllAsync();
 
         if (books is null) throw new Exception("Livros não encontrado.");
 
@@ -81,7 +87,9 @@ public class BookService : IBookService
 
     public async Task<BookViewModel> GetBookById(int id)
     {
-        var book = await _dbContext.Books.SingleOrDefaultAsync(b => b.Id == id);
+        _logger.LogInformation("Entrando no GetBookById do BookService para retornar um livro.");
+
+        var book = await _bookRepository.GetByIdAsync(id);
 
         if (book is null) throw new Exception("Livro não encontrado.");
 
@@ -106,7 +114,9 @@ public class BookService : IBookService
 
     public async Task<Book> UpdateBook(int id, UpdateBookInputModel updateBookInputModel)
     {
-        var book = _dbContext.Books.SingleOrDefault(b => b.Id == id);
+        _logger.LogInformation("Entrando no UpdateBook do BookService para atualizar um livro.");
+
+        var book = await _bookRepository.GetByIdAsync(id);
 
         if (book is null) throw new Exception("Livro não encontrado.");
 
@@ -121,17 +131,17 @@ public class BookService : IBookService
             updateBookInputModel.NumberOfPages,
             updateBookInputModel.AverageGrade);
 
-        _dbContext.Update(book);
-
-        await _dbContext.SaveChangesAsync();
+        await _bookRepository.UpdateAsync(book);
 
         return book;
     }
 
     public async Task<FileResult> DownloadPhotoBookAsync(int id)
     {
+        _logger.LogInformation("Entrando no DownloadPhotoBookAsync do BookService para baixar a imagem de capa do livro.");
+
         // Busca o livro no banco
-        var book = await _dbContext.Books.SingleOrDefaultAsync(b => b.Id == id);
+        var book = await _bookRepository.GetByIdAsync(id);
 
         // Verifica se existe o livro no banco
         if (book == null) throw new ArgumentException("Livro não encontrado");
