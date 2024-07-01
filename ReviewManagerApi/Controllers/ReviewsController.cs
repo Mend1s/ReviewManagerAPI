@@ -5,6 +5,7 @@ using ReviewManager.Application.ViewModels;
 
 namespace ReviewManager.API.Controllers;
 
+[ApiController]
 [Route("api/[controller]")]
 public class ReviewsController : ControllerBase
 {
