@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ReviewManager.Application.Services.Interfaces;
-using ReviewManager.Core.Repositories;
 
 namespace ReviewManager.API.Controllers;
 
@@ -8,22 +7,21 @@ namespace ReviewManager.API.Controllers;
 [Route("api/[controller]")]
 public class ReportsController : ControllerBase
 {
-    private readonly IBookService _bookService;
-    private readonly IBookRepository _bookRepository;
-    private readonly IPdfService _pdfService;
+    private readonly IReportReview _reportReview;
 
-    public ReportsController(IBookService bookService, IPdfService pdfService, IBookRepository bookRepository)
+    public ReportsController(IReportReview reportReview)
     {
-        _bookService = bookService;
-        _pdfService = pdfService;
-        _bookRepository = bookRepository;
+        _reportReview = reportReview;
     }
 
-    //[HttpGet("relatorio")]
-    //public async Task<IResult> GerarRelatorio()
-    //{
-    //    var books = await _bookRepository.GetAllAsync();
-    //    var pdfBytes = _pdfService.GerarRelatorioProdutos(books);
-    //    return pdfBytes;
-    //}
+    /// <summary>
+    /// Gera um relatório em Excel das avalições de livros e o salva como "Reviews.xlsx".
+    /// </summary>
+    /// <returns>Retorna um resultado Ok indicando que o relatório foi criado com sucesso.</returns>
+    [HttpGet("generate-report")]
+    public async Task<IActionResult> GenerateReport()
+    {
+        await _reportReview.GenerateReportAsync();
+        return Ok("Relatório criado com sucesso!");
+    }
 }

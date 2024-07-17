@@ -20,6 +20,7 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IReportReview, ReportReviewService>();
 
 builder.Services.AddDbContext<ReviewDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ReviewManager")));
