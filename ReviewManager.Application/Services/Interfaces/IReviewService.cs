@@ -8,5 +8,6 @@ public interface IReviewService
 {
     Task<List<ReviewViewModel>> GetAllReviews();
     Task<ReviewViewModel> GetReviewById(int id);
+    Task<List<ReviewViewModel>> GetReviewsByBookId(int idBook);
     Task<Review> CreateReview(CreateReviewInputModel createReviewInputModel);
 }

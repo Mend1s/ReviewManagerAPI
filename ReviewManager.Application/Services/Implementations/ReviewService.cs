@@ -4,6 +4,7 @@ using ReviewManager.Application.Services.Interfaces;
 using ReviewManager.Application.ViewModels;
 using ReviewManager.Core.Entities;
 using ReviewManager.Core.Repositories;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace ReviewManager.Application.Services.Implementations;
 
@@ -91,6 +92,31 @@ public class ReviewService : IReviewService
         return reviewViewModel;
     }
 
+    public async Task<List<ReviewViewModel>> GetReviewsByBookId(int idBook)
+    {
+        _logger.LogInformation("[ReviewService] Iniciando a obtenção da avaliações do IdBook: {idBook}.", idBook);
+
+        var review = await _reviewRepository.GetReviewsByIdBook(idBook);
+
+        if (review is null)
+        {
+            _logger.LogWarning("Avaliações com IDs: {Id} não encontrada.", idBook);
+            throw new Exception("Avaliações não encontrada.");
+        }
+
+        var reviewViewModel = review.Select(review => new ReviewViewModel
+        {
+            Id = review.Id,
+            Note = review.Note,
+            Description = review.Description,
+            IdUser = review.IdUser,
+            IdBook = review.IdBook,
+            CreateDate = review.CreateDate
+        }).ToList();
+
+        _logger.LogInformation("Avaliações com ID: {Id} obtida com sucesso.", idBook);
+        return reviewViewModel;
+    }
     public async Task<ReviewViewModel> GetReviewById(int id)
     {
         _logger.LogInformation("[ReviewService] Iniciando a obtenção da avaliação com ID: {Id}.", id);

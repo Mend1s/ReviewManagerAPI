@@ -7,4 +7,5 @@ public interface IReviewRepository
     Task<Review> CreateReview(Review review);
     Task<IEnumerable<Review>> GetAllReviews();
     Task<Review> GetReviewById(int id);
+    Task<List<Review>?> GetReviewsByIdBook(int idBook);
 }

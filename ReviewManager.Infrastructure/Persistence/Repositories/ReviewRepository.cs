@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using ReviewManager.Core.Entities;
 using ReviewManager.Core.Repositories;
+using System.Linq;
 
 namespace ReviewManager.Infrastructure.Persistence.Repositories;
 
@@ -74,6 +75,33 @@ public class ReviewRepository : IReviewRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ReviewRepository] Erro ao obter a avaliação com ID: {Id}.", id);
+            throw;
+        }
+    }
+
+    public async Task<List<Review>?> GetReviewsByIdBook(int idBook)
+    {
+        _logger.LogInformation("[ReviewRepository] Iniciando a obtenção da avaliação com ID: {idBook}.", idBook);
+
+        try
+        {
+            var review = await _dbContext.Reviews
+                                    .Where(b => b.IdBook == idBook).ToListAsync();
+
+            if (review == null)
+            {
+                _logger.LogWarning("[ReviewRepository] Avaliações com IDs: {idBook} não encontrada.", idBook);
+            }
+            else
+            {
+                _logger.LogInformation("[ReviewRepository] Avaliação com ID: {idBook} obtida com sucesso.", idBook);
+            }
+
+            return review;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ReviewRepository] Erro ao obter a avaliação com ID: {Id}.", idBook);
             throw;
         }
     }

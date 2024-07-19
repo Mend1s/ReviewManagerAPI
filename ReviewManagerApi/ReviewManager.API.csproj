@@ -24,7 +24,14 @@
 
 	<ItemGroup>
 	  <Folder Include="Reports\" />
-	  <Folder Include="Storage\" />
+	  <Folder Include="wwwroot\Storage\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="wwwroot\Storage\area-atendimento.png" />
+	  <None Include="wwwroot\Storage\matte-circulo.jpg" />
+	  <None Include="wwwroot\Storage\página-linkedin.png" />
+	  <None Include="wwwroot\Storage\Valinhos.jpg" />
 	</ItemGroup>
 
 </Project>

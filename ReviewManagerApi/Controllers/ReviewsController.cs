@@ -84,6 +84,38 @@ public class ReviewsController : ControllerBase
     }
 
     /// <summary>
+    /// Obtém as avaliações pelo ID do Book.
+    /// </summary>
+    /// <param name="idBook">O ID do livro a ser obtido.</param>
+    /// <returns>As avaliações solicitadas.</returns>
+    [HttpGet("book-reviews-id")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ReviewViewModel>> GetReviewsByBookId(int idBook)
+    {
+        _logger.LogInformation("[ReviewsController] Iniciando a operação de obtenção das avaliações com ID do livro: {idBook}", idBook);
+
+        try
+        {
+            var review = await _reviewService.GetReviewsByBookId(idBook);
+
+            if (review == null)
+            {
+                _logger.LogInformation("Avaliação com ID: {Id} não encontrada.", idBook);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Avaliação com ID: {Id} obtida com sucesso.", idBook);
+            return Ok(review);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao obter a avaliação com ID: {Id}.", idBook);
+            return BadRequest(error: $"[GetReviewById] : {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Cria uma nova avaliação.
     /// </summary>
     /// <param name="reviewViewModel">Os detalhes da avaliação a ser criada.</param>

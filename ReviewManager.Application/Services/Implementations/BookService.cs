@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ReviewManager.Application.InputModels;
 using ReviewManager.Application.Services.Interfaces;
@@ -10,24 +12,30 @@ namespace ReviewManager.Application.Services.Implementations;
 
 public class BookService : IBookService
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<BookService> _logger;
     private readonly IBookRepository _bookRepository;
     public BookService(
         ILogger<BookService> logger,
-        IBookRepository bookRepository)
+        IBookRepository bookRepository,
+        IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _bookRepository = bookRepository;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Book> CreateBook(CreateBookInputModel createBookInputModel)
     {
         _logger.LogInformation("Entrando no CreateBook do BookService para criar um novo livro.");
 
-        var filePath = Path.Combine("Storage", createBookInputModel.ImageUrl.FileName);
+        var fileName = Path.GetFileName(createBookInputModel.ImageUrl.FileName);
+        var filePath = Path.Combine("wwwroot", "Storage", fileName);
 
         using Stream fileStream = new FileStream(filePath, FileMode.Create);
         createBookInputModel.ImageUrl.CopyTo(fileStream);
+
+        var relativeFilePath = Path.Combine("Storage", fileName);
 
         var book = new Book(
             createBookInputModel.Title,
@@ -38,7 +46,7 @@ public class BookService : IBookService
             createBookInputModel.Genre,
             createBookInputModel.YearOfPublication,
             createBookInputModel.NumberOfPages,
-            filePath);
+            relativeFilePath);
 
         var bookCreated = await _bookRepository.CreateAsync(book);
 
@@ -66,6 +74,9 @@ public class BookService : IBookService
 
         if (books is null) throw new Exception("Livros não encontrado.");
 
+        var request = _httpContextAccessor.HttpContext.Request;
+        var baseUrl = $"{request.Scheme}://{request.Host}/";
+
         var bookViewModel = books.Select(book => new BookViewModel
         {
             Id = book.Id,
@@ -79,7 +90,7 @@ public class BookService : IBookService
             NumberOfPages = book.NumberOfPages,
             CreateDate = book.CreateDate,
             AverageGrade = book.AverageGrade,
-            ImageUrl = book.ImageUrl
+            ImageUrl = $"{baseUrl}{book.ImageUrl.Replace("\\", "/")}"
         }).ToList();
 
         return bookViewModel;
@@ -93,6 +104,9 @@ public class BookService : IBookService
 
         if (book is null) throw new Exception("Livro não encontrado.");
 
+        var request = _httpContextAccessor.HttpContext.Request;
+        var baseUrl = $"{request.Scheme}://{request.Host}/";
+
         var bookViewModel = new BookViewModel
         {
             Id = book.Id,
@@ -105,7 +119,7 @@ public class BookService : IBookService
             YearOfPublication = book.YearOfPublication,
             NumberOfPages = book.NumberOfPages,
             CreateDate = book.CreateDate,
-            ImageUrl = book.ImageUrl,
+            ImageUrl = $"{baseUrl}{book.ImageUrl.Replace("\\", "/")}",
             AverageGrade = book.AverageGrade
         };
 
