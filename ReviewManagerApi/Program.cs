@@ -1,6 +1,7 @@
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Mscc.GenerativeAI;
 using ReviewManager.API.Filters;
 using ReviewManager.Application.Services.Implementations;
 using ReviewManager.Application.Services.Interfaces;
@@ -8,6 +9,7 @@ using ReviewManager.Application.Validators;
 using ReviewManager.Core.Repositories;
 using ReviewManager.Infrastructure.Persistence;
 using ReviewManager.Infrastructure.Persistence.Repositories;
+using ReviewManager.Infrastructure.Persistence.Services;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,7 @@ builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IReportReview, ReportReviewService>();
+builder.Services.AddScoped<IGenerativeTestAI, GenerativeAI>();
 
 builder.Services.AddDbContext<ReviewDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ReviewManager")));

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ReviewManager.Application.Services.Interfaces;
+using ReviewManager.Infrastructure.Persistence.Services;
 
 namespace ReviewManager.API.Controllers;
 
@@ -8,10 +9,12 @@ namespace ReviewManager.API.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly IReportReview _reportReview;
+    private readonly IGenerativeTestAI _generativeAIService;
 
-    public ReportsController(IReportReview reportReview)
+    public ReportsController(IReportReview reportReview, IGenerativeTestAI generativeAIService)
     {
         _reportReview = reportReview;
+        _generativeAIService = generativeAIService;
     }
 
     /// <summary>
@@ -23,5 +26,12 @@ public class ReportsController : ControllerBase
     {
         await _reportReview.GenerateReportAsync();
         return Ok("Relatório criado com sucesso!");
+    }
+
+    [HttpGet("generate-book")]
+    public async Task<IActionResult> Generate()
+    {
+        var response = await _generativeAIService.GenerateContentAsync();
+        return Ok(response);
     }
 }

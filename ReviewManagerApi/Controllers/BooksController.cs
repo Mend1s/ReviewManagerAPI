@@ -79,7 +79,6 @@ public class BooksController : ControllerBase
             var book = await _bookService.CreateBook(createBookInputModel);
 
             return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
-
         }
         catch (Exception ex)
         {
@@ -97,7 +96,7 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Put(int id, [FromBody] UpdateBookInputModel updateBookModel)
+    public async Task<IActionResult> Put(int id, [FromForm] UpdateBookInputModel updateBookModel)
     {
         try
         {
@@ -106,7 +105,6 @@ public class BooksController : ControllerBase
             _logger.LogInformation("Entrando no endpoint Put da Controller Book");
 
             return Ok(await _bookService.UpdateBook(id, updateBookModel));
-
         }
         catch (Exception ex)
         {

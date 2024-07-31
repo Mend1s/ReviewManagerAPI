@@ -53,6 +53,39 @@ public class BookService : IBookService
         return bookCreated;
     }
 
+    public async Task<Book> UpdateBook(int id, UpdateBookInputModel updateBookInputModel)
+    {
+        _logger.LogInformation("Entrando no UpdateBook do BookService para atualizar um livro.");
+
+        var fileName = Path.GetFileName(updateBookInputModel.ImageUrl.FileName);
+        var filePath = Path.Combine("wwwroot", "Storage", fileName);
+
+        using Stream fileStream = new FileStream(filePath, FileMode.Create);
+        updateBookInputModel.ImageUrl.CopyTo(fileStream);
+
+        var book = await _bookRepository.GetByIdAsync(id);
+
+        if (book is null) throw new Exception("Livro não encontrado.");
+
+        var relativeFilePath = Path.Combine("Storage", fileName);
+
+        book.UpdateBook(
+            updateBookInputModel.Title,
+            updateBookInputModel.Description,
+            updateBookInputModel.ISBN,
+            updateBookInputModel.Author,
+            updateBookInputModel.Publisher,
+            updateBookInputModel.Genre,
+            updateBookInputModel.YearOfPublication,
+            updateBookInputModel.NumberOfPages,
+            relativeFilePath
+            );
+
+        await _bookRepository.UpdateAsync(book);
+
+        return book;
+    }
+
     public async Task<bool> DeleteBook(int id)
     {
         _logger.LogInformation("Entrando no DeleteBook do BookService para excluir um livro.");
@@ -124,30 +157,6 @@ public class BookService : IBookService
         };
 
         return bookViewModel;
-    }
-
-    public async Task<Book> UpdateBook(int id, UpdateBookInputModel updateBookInputModel)
-    {
-        _logger.LogInformation("Entrando no UpdateBook do BookService para atualizar um livro.");
-
-        var book = await _bookRepository.GetByIdAsync(id);
-
-        if (book is null) throw new Exception("Livro não encontrado.");
-
-        book.UpdateBook(
-            updateBookInputModel.Title,
-            updateBookInputModel.Description,
-            updateBookInputModel.ISBN,
-            updateBookInputModel.Author,
-            updateBookInputModel.Publisher,
-            updateBookInputModel.Genre,
-            updateBookInputModel.YearOfPublication,
-            updateBookInputModel.NumberOfPages,
-            updateBookInputModel.AverageGrade);
-
-        await _bookRepository.UpdateAsync(book);
-
-        return book;
     }
 
     public async Task<FileResult> DownloadPhotoBookAsync(int id)

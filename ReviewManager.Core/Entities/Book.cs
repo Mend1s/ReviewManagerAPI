@@ -51,7 +51,7 @@ public class Book : BaseEntity
         BookGenre genre,
         int yearOfPublication,
         int numberOfPages,
-        decimal? averageGrade)
+        string relativeFilePath)
     {
         Title = title;
         Description = description;
@@ -61,6 +61,6 @@ public class Book : BaseEntity
         Genre = genre;
         YearOfPublication = yearOfPublication;
         NumberOfPages = numberOfPages;
-        AverageGrade = averageGrade;
+        ImageUrl = relativeFilePath;
     }
 }

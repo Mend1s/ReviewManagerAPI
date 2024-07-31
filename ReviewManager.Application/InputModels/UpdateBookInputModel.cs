@@ -1,4 +1,5 @@
-﻿using ReviewManager.Core.Enums;
+﻿using Microsoft.AspNetCore.Http;
+using ReviewManager.Core.Enums;
 
 namespace ReviewManager.Application.InputModels;
 
@@ -12,5 +13,6 @@ public class UpdateBookInputModel
     public BookGenre Genre { get; set; }
     public int YearOfPublication { get; set; }
     public int NumberOfPages { get; set; }
-    public decimal? AverageGrade { get; set; }
+    public IFormFile ImageUrl { get; set; }
+    //public decimal? AverageGrade { get; set; }
 }
